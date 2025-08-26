@@ -26,12 +26,13 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Add source to this project's executable.
-file(GLOB NOMS_SOURCES
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+file(GLOB_RECURSE NOMS_SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
-list(FILTER NOMS_SOURCES EXCLUDE REGEX ".*noms-cpp.cpp$")
-add_executable (noms-cpp ${NOMS_SOURCES} noms-cpp.cpp)
+list(FILTER NOMS_SOURCES EXCLUDE REGEX ".*noms-cpp\\.cpp$")
+message(STATUS "NOMS_SOURCES contains: ${NOMS_SOURCES}")
+add_executable (noms-cpp ${NOMS_SOURCES} src/noms-cpp.cpp)
 target_include_directories(noms-cpp PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
@@ -42,10 +43,14 @@ target_include_directories(noms-cpp PRIVATE
 
 enable_testing()
 
+file(GLOB_RECURSE NOMS_TESTS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*_test.cc"
+)
+
 add_executable(
   noms_test
   ${NOMS_SOURCES}
-  common_test.cc
+  ${NOMS_TESTS}
 )
 target_link_libraries(
   noms_test

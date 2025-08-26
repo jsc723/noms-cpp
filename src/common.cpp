@@ -1,4 +1,5 @@
 #include "common.h"
+#include <format>
 
 namespace noms {
 	std::string toString(proxy<Stringable> p) noexcept {
@@ -26,19 +27,35 @@ namespace noms {
 		return result;
 	}
 
+	size_t encodedCharToValue(char c) {
+		if (c >= '0' && c <= '9') return c - '0';
+		size_t res = c + 10 - 'a';
+		if (res < 32) return res;
+		throw std::invalid_argument("Invalid character in encoded string: " + std::string(1, c));
+	}
+
 	void decode32(std::span<const char> encoded, std::span<char> data) {
 		if (encoded.size() * 5 % 8 != 0 || data.size() * 8 != encoded.size() * 5) {
-			throw std::invalid_argument("Invalid encoded size or data size");
+			throw std::invalid_argument(std::format("Invalid encoded size or data size encode sz = {}, decode sz = {}", encoded.size(), data.size()));
 		}
-		const static char alphabet[] = "0123456789abcdefghijklmnopqrstuv";
 		for (size_t i = 0, j = 0; i < encoded.size(); i += 8, j += 5) {
-			for (size_t k = 0; k < 8; ++k) {
-				auto pos = std::lower_bound(alphabet, alphabet + 32, encoded[i + k]);
-				if (pos == alphabet + 32 || *pos != encoded[i + k]) {
-					throw std::invalid_argument("Invalid character in encoded string: " + std::string(begin(data), end(data)));
-				}
-				data[j + k / 2] |= (pos - alphabet) << ((k % 2) ? 0 : 3);
-			}
+			memset(&data[j], 0, 5);
+			data[j] |= (encodedCharToValue(encoded[i]) << 3);
+			int v1 = encodedCharToValue(encoded[i + 1]);
+			data[j] |= (v1 >> 2);
+			data[j + 1] |= (v1 << 6);
+			data[j + 1] |= (encodedCharToValue(encoded[i + 2]) << 1);
+			int v3 = encodedCharToValue(encoded[i + 3]);
+			data[j + 1] |= (v3 >> 4);
+			data[j + 2] |= (v3 << 4);
+			int v4 = encodedCharToValue(encoded[i + 4]);
+			data[j + 2] |= (v4 >> 1);
+			data[j + 3] |= (v4 << 7);
+			data[j + 3] |= (encodedCharToValue(encoded[i + 5]) << 2);
+			int v6 = encodedCharToValue(encoded[i + 6]);
+			data[j + 3] |= (v6 >> 3);
+			data[j + 4] |= (v6 << 5);
+			data[j + 4] |= encodedCharToValue(encoded[i + 7]);
 		}
 	}
 }
