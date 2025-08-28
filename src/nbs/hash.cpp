@@ -1,13 +1,24 @@
-#include "common.h"
+#include "hash.h"
 #include <format>
+#include <openssl/sha.h>
+#include <regex>
+
+
+namespace std {
+	template <>
+	struct hash<noms::Hash> {
+		std::size_t operator()(const noms::Hash& h) const {
+			return noms::Hash::Hasher{}(h);
+		}
+	};
+
+}
 
 namespace noms {
-	std::string toString(proxy<Stringable> p) noexcept {
-		return p->toString();
-	}
 
+	// binary to base32 encoding
 	// size of data must be divisible by 5
-	std::string encode32(std::span<char> data) {
+	std::string encode32(std::span<const char> data) {
 		const static char alphabet[] = "0123456789abcdefghijklmnopqrstuv";
 		const auto N = data.size();
 		if (N % 5 != 0) {
@@ -34,6 +45,7 @@ namespace noms {
 		throw std::invalid_argument("Invalid character in encoded string: " + std::string(1, c));
 	}
 
+	// base32 decoding to binary
 	void decode32(std::span<const char> encoded, std::span<char> data) {
 		if (encoded.size() * 5 % 8 != 0 || data.size() * 8 != encoded.size() * 5) {
 			throw std::invalid_argument(std::format("Invalid encoded size or data size encode sz = {}, decode sz = {}", encoded.size(), data.size()));
@@ -57,5 +69,43 @@ namespace noms {
 			data[j + 4] |= (v6 << 5);
 			data[j + 4] |= encodedCharToValue(encoded[i + 7]);
 		}
+	}
+	Hash Hash::Of(std::span<const char> data)
+	{
+		SHA512_CTX ctx;
+		SHA512_Init(&ctx);
+		SHA512_Update(&ctx, data.data(), data.size());
+		unsigned char buf[SHA512_DIGEST_LENGTH];
+		SHA512_Final(buf, &ctx);
+		return Hash(std::span{ (char*)buf, ByteLen });
+	}
+	// parse from base32 string
+	std::optional<Hash> Hash::MaybeParse(std::span<const char> hash)
+	{
+		// Create the regex object
+		static const std::regex hashPattern("^([0-9a-v]{" + std::to_string(StringLen) + "})$");
+		if (std::regex_match(hash.data(), hash.data() + hash.size(), hashPattern)) {
+			Hash h;
+			decode32(hash, h);
+			return h;
+		}
+		return std::optional<Hash>();
+	}
+
+	HashSet::HashSet() : set() {}
+	HashSet::HashSet(const HashSet& other) : set(other.set.get()) {}
+	HashSet::HashSet(std::initializer_list<Hash> list) : set(std::make_unique<std::unordered_set<Hash>>(list.begin(), list.end())) {}
+
+	bool HashSet::contains(const Hash& h) const {
+		return set->find(h) != set->end();
+	}
+	void HashSet::insert(const Hash& h) {
+		set->insert(h);
+	}
+	size_t HashSet::size() const {
+		return set->size();
+	}
+	void HashSet::clear() {
+		set->clear();
 	}
 }

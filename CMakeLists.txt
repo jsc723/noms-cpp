@@ -16,6 +16,8 @@ project ("noms-cpp")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(OpenSSL  REQUIRED)
+
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -36,6 +38,10 @@ add_executable (noms-cpp ${NOMS_SOURCES} src/noms-cpp.cpp)
 target_include_directories(noms-cpp PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+target_link_libraries(noms-cpp
+  PRIVATE
+  OpenSSL::Crypto
+)
 
 
 
@@ -54,11 +60,13 @@ add_executable(
 )
 target_link_libraries(
   noms_test
+  OpenSSL::Crypto
   GTest::gtest_main
 )
 target_include_directories(noms_test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+
 
 include(GoogleTest)
 gtest_discover_tests(noms_test)

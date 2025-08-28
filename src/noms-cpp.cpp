@@ -1,6 +1,6 @@
-﻿#include "common.h"
-#include "MemTable.h"
-#include "table.h"
+﻿#include "nbs/common.h"
+#include "nbs/MemTable.h"
+#include "nbs/table.h"
 
 #include <iostream>
 #include <string>
