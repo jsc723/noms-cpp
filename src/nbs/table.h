@@ -1,9 +1,11 @@
 #pragma once
-#include "common.h"
+#include "proxy.h"
 #include <string>
 #include <span>
+#include "hash/all.h"
+#include "chunks/all.h"
 
-namespace noms {
+namespace nomp {
 
 	constexpr int ADDR_SIZE = 20;
 
@@ -53,26 +55,17 @@ namespace noms {
 		bool     found;
 	};
 
-	PRO_DEF_MEM_DISPATCH(MemHas, has);
-	PRO_DEF_MEM_DISPATCH(MemHasMany, hasMany);
-	PRO_DEF_MEM_DISPATCH(MemGet, get);
-	PRO_DEF_MEM_DISPATCH(MemGetMany, getMany);
-	PRO_DEF_MEM_DISPATCH(MemCount, count);
-	PRO_DEF_MEM_DISPATCH(MemUncompressedLen, uncompressedLen);
+	namespace interface {
+		PRO_DEF_MEM_DISPATCH(MemCount, count);
+		PRO_DEF_MEM_DISPATCH(MemUncompressedLen, uncompressedLen);
 
-	struct ChunkReader : pro::facade_builder
-		::support_copy<pro::constraint_level::nontrivial>
-		::add_convention<MemHas, bool(const addr &h)>
-		::add_convention<MemHasMany, bool(std::span<hasRecord> records)>
-		::add_convention<MemGet, std::shared_ptr<std::byte[]>(const addr& h)>
-		::add_convention<MemGetMany, bool(std::span<getRecord> records)>
-		::add_convention<MemCount, uint32_t()const>
-		::add_convention<MemUncompressedLen, uint64_t()const>
-		::build {
-	};
-
-
-
+		struct ChunkReader : pro::facade_builder
+			::support_copy<pro::constraint_level::nontrivial>
+			// TODO
+			::build {
+		};
+	}
+	
 }
 
 

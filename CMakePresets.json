@@ -57,14 +57,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
-    },
-    {
-      "name": "vcpkg",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "C:/Users/jscjs/source/libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
-      }
     }
   ]
 }

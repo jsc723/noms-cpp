@@ -9,15 +9,7 @@
 
 using pro::proxy;
 
-namespace noms {
-
-PRO_DEF_MEM_DISPATCH(MemToString, toString);
-
-struct Stringable : pro::facade_builder
-	::support_copy<pro::constraint_level::nontrivial>
-	::add_convention<MemToString, std::string()const>
-	::build {};
-std::string toString(proxy<Stringable> p) noexcept;
+namespace nomp {
 
 
 template <typename T>

@@ -10,7 +10,7 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("noms-cpp") 
+project ("nomp") 
 
 # Set C++ standard to 23
 set(CMAKE_CXX_STANDARD 23)
@@ -28,17 +28,18 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Add source to this project's executable.
-file(GLOB_RECURSE NOMS_SOURCES
+file(GLOB_RECURSE NOMP_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
-list(FILTER NOMS_SOURCES EXCLUDE REGEX ".*noms-cpp\\.cpp$")
-message(STATUS "NOMS_SOURCES contains: ${NOMS_SOURCES}")
-add_executable (noms-cpp ${NOMS_SOURCES} src/noms-cpp.cpp)
-target_include_directories(noms-cpp PRIVATE
+list(FILTER NOMP_SOURCES EXCLUDE REGEX ".*nomp\\.cpp$")
+message(STATUS "NOMP_SOURCES contains: ${NOMP_SOURCES}")
+add_executable (nomp ${NOMP_SOURCES} "src/nomp.cpp")
+target_include_directories(nomp PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
-target_link_libraries(noms-cpp
+target_link_libraries(nomp
   PRIVATE
   OpenSSL::Crypto
 )
@@ -49,24 +50,25 @@ target_link_libraries(noms-cpp
 
 enable_testing()
 
-file(GLOB_RECURSE NOMS_TESTS
+file(GLOB_RECURSE NOMP_TESTS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*_test.cc"
 )
 
 add_executable(
-  noms_test
-  ${NOMS_SOURCES}
-  ${NOMS_TESTS}
+  nomp_test
+  ${NOMP_SOURCES}
+  ${NOMP_TESTS}
 )
 target_link_libraries(
-  noms_test
+  nomp_test
   OpenSSL::Crypto
   GTest::gtest_main
 )
-target_include_directories(noms_test PRIVATE
+target_include_directories(nomp_test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 
 include(GoogleTest)
-gtest_discover_tests(noms_test)
+gtest_discover_tests(nomp_test)

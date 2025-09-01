@@ -4,17 +4,7 @@
 #include <regex>
 
 
-namespace std {
-	template <>
-	struct hash<noms::Hash> {
-		std::size_t operator()(const noms::Hash& h) const {
-			return noms::Hash::Hasher{}(h);
-		}
-	};
-
-}
-
-namespace noms {
+namespace nomp {
 
 	// binary to base32 encoding
 	// size of data must be divisible by 5
@@ -92,20 +82,4 @@ namespace noms {
 		return std::optional<Hash>();
 	}
 
-	HashSet::HashSet() : set() {}
-	HashSet::HashSet(const HashSet& other) : set(other.set.get()) {}
-	HashSet::HashSet(std::initializer_list<Hash> list) : set(std::make_unique<std::unordered_set<Hash>>(list.begin(), list.end())) {}
-
-	bool HashSet::contains(const Hash& h) const {
-		return set->find(h) != set->end();
-	}
-	void HashSet::insert(const Hash& h) {
-		set->insert(h);
-	}
-	size_t HashSet::size() const {
-		return set->size();
-	}
-	void HashSet::clear() {
-		set->clear();
-	}
 }

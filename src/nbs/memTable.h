@@ -11,10 +11,10 @@ type chunkReader interface {
 	extract(chunks chan<- extractRecord)
 }
 */
-namespace noms {
+namespace nomp {
 	class memTable {
 	public:
-		bool has(const addr& h);
+		bool has(const Hash& hash);
 		bool hasMany(std::span<hasRecord> records);
 		std::shared_ptr<std::byte[]> get(const addr& h);
 		bool getMany(std::span<getRecord> records);
