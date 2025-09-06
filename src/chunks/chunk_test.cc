@@ -32,13 +32,13 @@ TEST(ChunkTest, TestChunkWriter) {
 	auto chunk = writer.getChunk();
 	EXPECT_EQ(chunk.size(), data1.size() + data2.size());
 	string allData = data1 + data2;
-	EXPECT_TRUE(std::equal((std::byte*)allData.c_str(), (std::byte*)allData.c_str() + allData.size(), chunk.data().get()));
+	EXPECT_TRUE(std::equal((std::byte*)allData.c_str(), (std::byte*)allData.c_str() + allData.size(), chunk.data().span().begin()));
 
 	string data3 = "ijklmnop";
 	writer.write(std::span{ (std::byte*)data3.c_str(), data3.size() });
 	auto chunk2 = writer.getChunk();
 	EXPECT_EQ(chunk2.size(), data3.size());
-	EXPECT_TRUE(std::equal((std::byte*)data3.c_str(), (std::byte*)data3.c_str() + data3.size(), chunk2.data().get()));
+	EXPECT_TRUE(std::equal((std::byte*)data3.c_str(), (std::byte*)data3.c_str() + data3.size(), chunk2.data().span().begin()));
 }
 
 

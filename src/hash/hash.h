@@ -23,7 +23,7 @@ namespace nomp {
 	constexpr auto StringLen = 32; // 5 bytes = 8 chars, 20 bytes = 32 chars
 
 	struct Hash {
-	private:
+	protected:
 		char *data;
 	public:
 
@@ -99,7 +99,7 @@ namespace nomp {
 		static Hash Of(std::span<const std::byte> data) {
 			return Of(std::span{ (const char*)data.data(), data.size() });
 		}
-
+		
 		// parse from base32 string
 		static std::optional<Hash> MaybeParse(std::span<const char> encoded);
 		static Hash Parse(const char* encoded) {
@@ -138,7 +138,6 @@ namespace nomp {
 			}
 			return sum;
 		}
-
 
 
 

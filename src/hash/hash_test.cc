@@ -224,4 +224,3 @@ TEST(TestHash, TestHashSort) {
 	std::sort(res.begin(), res.end());
 	EXPECT_EQ(exp, res);
 }
-

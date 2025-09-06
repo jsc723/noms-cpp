@@ -1,60 +1,56 @@
 #pragma once
 #include "common.h"
 #include "hash/hash.h"
+#include "bytes.h"
 #include <memory>
 #include <vector>
 #include <optional>
 
 namespace nomp {
 	class Chunk {
+		ByteSlice m_data;
 		Hash r;
-		std::shared_ptr<std::byte[]> m_data; // todo: use const std::byte[]
-		size_t sz;
 	public:
-		Chunk() : m_data(std::make_shared<std::byte[]>(0)), sz(0) {}
-		Chunk(std::span<const std::byte> data) : m_data(std::make_shared<std::byte[]>(data.size())), sz(data.size()) {
-			std::copy(data.begin(), data.end(), this->m_data.get());
-			r = Hash::Of(data);
+		Chunk() {}
+		Chunk(std::span<std::byte> data) : m_data(data) {
+			r = m_data.hash();
 		}
-		Chunk(std::span<std::byte> data, const Hash& hash) : m_data(std::make_shared<std::byte[]>(data.size())), r(hash), sz(data.size()) {
-			std::copy(data.begin(), data.end(), this->m_data.get());
+		Chunk(std::span<std::byte> data, const Hash& hash) : m_data(data), r(hash) {
 		}
-		Chunk(std::shared_ptr<std::byte[]> data, size_t sz) : m_data(data), sz(sz) {
-			r = Hash::Of(std::span{ data.get(), sz });
+		Chunk(std::shared_ptr<std::byte[]> data, size_t sz) : m_data(data, sz) {
+			r = m_data.hash();
 		}
-		Chunk(std::shared_ptr<std::byte[]> data, size_t sz, const Hash& hash) : m_data(data), r(hash), sz(sz) {
+		Chunk(std::shared_ptr<std::byte[]> data, size_t sz, const Hash& hash) : m_data(data, sz), r(hash) {
 		}
 		static Chunk FromString(const std::string& str) {
-			return Chunk(std::span{ (const std::byte*)str.data(), str.size() });
+			return Chunk(std::span{ (std::byte*)str.data(), str.size() });
 		}
 		static Chunk FromStringView(std::string_view str) {
-			return Chunk(std::span{ (const std::byte*)str.data(), str.size() });
+			return Chunk(std::span{ (std::byte*)str.data(), str.size() });
 		}
-		Chunk(const Chunk& other) : r(other.r), m_data(other.m_data), sz(other.sz) {
+		Chunk(const Chunk& other) : r(other.r), m_data(other.m_data) {
 		}
 		Chunk& operator=(const Chunk& other) {
 			if (this != &other) {
 				r = other.r;
 				m_data = other.m_data;
-				sz = other.sz;
 			}
 			return *this;
 		}
-		Chunk(Chunk&& other) noexcept : r(std::move(other.r)), m_data(std::move(other.m_data)), sz(other.sz) {}
+		Chunk(Chunk&& other) noexcept : r(std::move(other.r)), m_data(std::move(other.m_data)) {}
 		Chunk& operator=(Chunk&& other) noexcept {
 			if (this != &other) {
 				r = std::move(other.r);
 				m_data = std::move(other.m_data);
-				sz = other.sz;
 			}
 			return *this;
 		}
 		bool operator==(const Chunk& rhs) const noexcept {
-			return r == rhs.r && sz == rhs.sz && std::equal(m_data.get(), m_data.get() + sz, rhs.m_data.get());
+			return r == rhs.r && m_data == rhs.m_data;
 		}
 		const Hash& hash() const { return r; }
-		std::shared_ptr<std::byte[]> data() const { return m_data; }
-		size_t size() const { return sz; }
+		ByteSlice data() const { return m_data; }
+		size_t size() const { return m_data.size(); }
 
 		void serialize(interface::IWriter writer);
 		static std::optional<Chunk> deserialize(interface::IReader reader);

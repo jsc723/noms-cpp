@@ -22,10 +22,10 @@ namespace nomp {
 	void Chunk::serialize(interface::IWriter writer) {
 		writer->write(r);
 		// Because of chunking at higher levels, no chunk should never be more than 4GB
-		BigEndian::writeUint32(writer, static_cast<uint32_t>(sz));
-		int n = writer->write(std::span{ m_data.get(), sz });
-		if (n != (int)sz) {
-			throw std::runtime_error("Failed to write chunk data, expected " + std::to_string(sz) + " bytes, wrote " + std::to_string(n));
+		BigEndian::writeUint32(writer, static_cast<uint32_t>(size()));
+		int n = writer->write(m_data.span());
+		if (n != (int)size()) {
+			throw std::runtime_error("Failed to write chunk data, expected " + std::to_string(size()) + " bytes, wrote " + std::to_string(n));
 		}
 	}
 

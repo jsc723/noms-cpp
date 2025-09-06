@@ -7,63 +7,57 @@
 
 namespace nomp {
 
-	constexpr int ADDR_SIZE = 20;
-
-	struct addr {
-		char data[ADDR_SIZE];
-
-		std::string toString() const {
-			// to hex string
-			std::string result;
-			result.reserve(ADDR_SIZE * 2);
-			for (int i = 0; i < ADDR_SIZE; ++i) {
-				char buf[3];
-				sprintf_s(buf, "%02x", static_cast<unsigned char>(data[i]));
-				result.append(buf);
-			}
-			return result;
-		}
-
-		// first 8 bytes as big-endian uint64_t
-		uint64_t prefix() const {
-			uint64_t value = 0;
-			for (int i = 0; i < 8; ++i) {
-				value = (value << 8) | static_cast<unsigned char>(data[i]);
-			}
-			return value;
-		}
-
-		uint32_t checkSum() const {
-			uint32_t sum = 0;
-			for (int i = 0; i < ADDR_SIZE; ++i) {
-				sum += static_cast<unsigned char>(data[i]);
-			}
-			return sum;
-		}
-	};
-
 	struct hasRecord {
-		std::shared_ptr<addr> addr;
+		Hash addr;
 		uint64_t prefix;
 		int      order;
 		bool     has;
 	};
 
 	struct getRecord {
-		std::shared_ptr<addr> addr;
+		Hash addr;
+		ByteSlice data;
 		uint64_t prefix;
 		bool     found;
 	};
 
+	struct extractRecord {
+		Hash addr;
+		ByteSlice data;
+		int err; // non-zero if error
+	};
+
 	namespace interface {
+		PRO_DEF_MEM_DISPATCH(MemHasMany, hasMany);
 		PRO_DEF_MEM_DISPATCH(MemCount, count);
 		PRO_DEF_MEM_DISPATCH(MemUncompressedLen, uncompressedLen);
+		PRO_DEF_MEM_DISPATCH(MemExtract, extract);
 
-		struct ChunkReader : pro::facade_builder
-			::support_copy<pro::constraint_level::nontrivial>
-			// TODO
-			::build {
+		struct RawChunkReader : pro::facade_builder
+			// Returns true iff the value at the address |hash| is contained in the reader.
+			::add_convention<MemHas, bool(const Hash& hash)>
+
+			// Returns true if any is absent in the reader.
+			::add_convention<MemHasMany, bool(std::span<hasRecord> &records)>
+
+			// Returns the value at the address |hash| if it is contained, return true if hash is found
+			::add_convention<MemGet, bool(const Hash& hash, ByteSlice &data)>
+
+			// Returns true if any is absent in the reader.
+			::add_convention<MemGetMany, bool(std::span<getRecord> &hashes)>
+
+			// Returns the number of chunks in the reader.
+			::add_convention<MemCount, uint32_t()>
+
+			// Returns the total uncompressed length of all chunks in the reader.
+			::add_convention<MemUncompressedLen, uint64_t()>
+
+			// Returns the chunks in insertion order
+			::add_convention<MemExtract, void (std::vector<extractRecord> &)>
+
+		::build{
 		};
+		using IRawChunkReader = pro::proxy<RawChunkReader>;
 	}
 	
 }
