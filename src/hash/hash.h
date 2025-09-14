@@ -6,6 +6,8 @@
 #include <optional>
 #include <unordered_set>
 #include <stdexcept>
+#include "common.h"
+
 
 namespace nomp {
 
@@ -98,6 +100,9 @@ namespace nomp {
 		static Hash Of(std::span<const char> data);
 		static Hash Of(std::span<const std::byte> data) {
 			return Of(std::span{ (const char*)data.data(), data.size() });
+		}
+		static Hash Of(const ByteSlice &data) {
+			return Of(data.span());
 		}
 		
 		// parse from base32 string

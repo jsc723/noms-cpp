@@ -2,7 +2,6 @@
 
 #include "mem_table.h"
 #include <memory>
-#include "chunks/bytes.h"
 
 static void assertChunksInReader(const std::vector<nomp::Chunk>& chunks, nomp::interface::IRawChunkReader reader) {
 	for (const auto& chunk : chunks) {

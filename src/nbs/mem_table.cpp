@@ -1,5 +1,5 @@
 #include "mem_table.h"
-#include "chunks/bytes.h"
+#include "hash/all.h"
 #include <exception>
 
 namespace nomp {

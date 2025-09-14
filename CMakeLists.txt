@@ -17,6 +17,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenSSL  REQUIRED)
+find_package(lz4 CONFIG REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -42,6 +43,7 @@ target_include_directories(nomp PRIVATE
 target_link_libraries(nomp
   PRIVATE
   OpenSSL::Crypto
+  lz4::lz4
 )
 
 
@@ -62,6 +64,7 @@ add_executable(
 target_link_libraries(
   nomp_test
   OpenSSL::Crypto
+  lz4::lz4
   GTest::gtest_main
 )
 target_include_directories(nomp_test PRIVATE

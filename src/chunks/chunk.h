@@ -1,7 +1,6 @@
 #pragma once
 #include "common.h"
-#include "hash/hash.h"
-#include "bytes.h"
+#include "hash/all.h"
 #include <memory>
 #include <vector>
 #include <optional>
@@ -13,12 +12,12 @@ namespace nomp {
 	public:
 		Chunk() {}
 		Chunk(std::span<std::byte> data) : m_data(data) {
-			r = m_data.hash();
+			r = Hash::Of(m_data.span());
 		}
 		Chunk(std::span<std::byte> data, const Hash& hash) : m_data(data), r(hash) {
 		}
 		Chunk(std::shared_ptr<std::byte[]> data, size_t sz) : m_data(data, sz) {
-			r = m_data.hash();
+			r = Hash::Of(m_data);
 		}
 		Chunk(std::shared_ptr<std::byte[]> data, size_t sz, const Hash& hash) : m_data(data, sz), r(hash) {
 		}

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "chunk.h"
-#include "hash/hash.h"
+#include "hash/all.h"
 #include <string>
 
 using std::string;
