@@ -115,4 +115,7 @@ namespace nomp {
                 v = uint16(std::span{ buf, 2 });
             }
     };
+
+    uint32_t crc32(const std::byte* data, size_t length);
+    uint32_t crc32(std::span<const std::byte> data);
 }

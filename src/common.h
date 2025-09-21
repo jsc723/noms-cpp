@@ -7,6 +7,7 @@
 #include <memory>
 
 namespace nomp {
+	using std::byte;
 	inline static constexpr std::string_view NOMP_VERSION = "v0.0.1";
 
 	namespace interface {
@@ -115,6 +116,7 @@ namespace nomp {
 		size_t sz;
 	public:
 		ByteSlice() :data(nullptr), sz(0) {}
+		ByteSlice(size_t sz) : data(std::make_shared<std::byte[]>(sz)), sz(sz) {}
 		ByteSlice(std::shared_ptr<std::byte[]> ptr, size_t sz) : data(ptr), sz(sz) {}
 		ByteSlice(std::span<std::byte> src) :data(std::make_shared<std::byte[]>(src.size())), sz(src.size()) {
 			std::copy(src.begin(), src.end(), data.get());
@@ -158,11 +160,38 @@ namespace nomp {
 			return ByteSlice(std::span{ newData.get(), sz + other.sz });
 		}
 		std::byte operator[](size_t i) const {
-			if (i >= sz) throw std::out_of_range("ByteSlice index out of range");
+			// if (i >= sz) throw std::out_of_range("ByteSlice index out of range");
 			return data[i];
 		}
 		std::span<const std::byte> span() const {
 			return { (const std::byte*)data.get(), sz };
+		}
+		std::span<std::byte> span() {
+			return { data.get(), sz };
+		}
+		std::span<const std::byte> subSpan(size_t offset) const {
+			// if (offset > sz) throw std::out_of_range("ByteSlice subSpan out of range");
+			return { data.get() + offset, sz - offset };
+		}
+		std::span<const std::byte> subSpan(size_t offset, size_t length) const {
+			// if (offset + length > sz) throw std::out_of_range("ByteSlice subSpan out of range");
+			return { data.get() + offset, length };
+		}
+		std::span<std::byte> subSpan(size_t offset) {
+			// if (offset > sz) throw std::out_of_range("ByteSlice subSpan out of range");
+			return { data.get() + offset, sz - offset };
+		}
+		std::span<std::byte> subSpan(size_t offset, size_t length) {
+			// if (offset + length > sz) throw std::out_of_range("ByteSlice subSpan out of range");
+			return { data.get() + offset, length };
+		}
+		ByteSlice subSlice(size_t offset) const {
+			// if (offset > sz) throw std::out_of_range("ByteSlice subSlice out of range");
+			return ByteSlice(std::span<byte>{ data.get() + offset, sz - offset});
+		}
+		ByteSlice subSlice(size_t offset, size_t length) const {
+			// if (offset + length > sz) throw std::out_of_range("ByteSlice subSlice out of range");
+			return ByteSlice(std::span<byte>{ data.get() + offset, length});
 		}
 		size_t size() const { return sz; }
 

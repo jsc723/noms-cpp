@@ -6,6 +6,7 @@
 #include <optional>
 #include <unordered_set>
 #include <stdexcept>
+#include <openssl/sha.h>
 #include "common.h"
 
 
@@ -161,5 +162,21 @@ namespace nomp {
 
 
 	using HashSet = std::unordered_set<Hash, Hash::Hasher>;
+
+
+	class Hasher {
+		SHA512_CTX ctx;
+	public:
+		Hasher() {
+			SHA512_Init(&ctx);
+		}
+		void update(std::span<const char> data) {
+			SHA512_Update(&ctx, data.data(), data.size());
+		}
+		void update(std::span<const std::byte> data) {
+			SHA512_Update(&ctx, (const char*)data.data(), data.size());
+		}
+		Hash final();
+	};
 	
 }

@@ -82,4 +82,11 @@ namespace nomp {
 		return std::optional<Hash>();
 	}
 
+	Hash Hasher::final()
+	{
+		unsigned char buf[SHA512_DIGEST_LENGTH];
+		SHA512_Final(buf, &ctx);
+		return Hash(std::span{ (char*)buf, ByteLen });
+	}
+
 }

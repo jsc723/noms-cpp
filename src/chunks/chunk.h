@@ -12,7 +12,7 @@ namespace nomp {
 	public:
 		Chunk() {}
 		Chunk(std::span<std::byte> data) : m_data(data) {
-			r = Hash::Of(m_data.span());
+			r = Hash::Of(m_data);
 		}
 		Chunk(std::span<std::byte> data, const Hash& hash) : m_data(data), r(hash) {
 		}

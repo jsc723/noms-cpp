@@ -2,22 +2,39 @@
 #include "proxy.h"
 
 
-
 namespace nomp {
 	namespace interface {
-		PRO_DEF_MEM_DISPATCH(MemEncode, encode);
-		PRO_DEF_MEM_DISPATCH(MemDecode, decode);
-
-		struct Compressor : pro::facade_builder
-			::add_convention<MemEncode, ByteSlice(ByteSlice)>
-			::add_convention<MemDecode, ByteSlice(ByteSlice)>
+		PRO_DEF_MEM_DISPATCH(MemCompress, compress);
+		PRO_DEF_MEM_DISPATCH(MemCompressInplace, compressInplace);
+		struct Compresser : pro::facade_builder
+			::support_copy<pro::constraint_level::nontrivial>
+			::support_relocation<pro::constraint_level::nontrivial>
+			::add_convention<MemCompress, ByteSlice(const ByteSlice& src)>
+			::add_convention<MemCompressInplace, size_t(const ByteSlice& src, std::span<std::byte> dest)>
 			::build {
 		};
-		using ICompressor = pro::proxy<Compressor>;
+		using ICompresser = pro::proxy<Compresser>;
+
+		PRO_DEF_MEM_DISPATCH(MemDecompress, decompress);
+		PRO_DEF_MEM_DISPATCH(MemDecompressInplace, decompressInplace);
+		struct Decompresser : pro::facade_builder
+			::support_copy<pro::constraint_level::nontrivial>
+			::support_relocation<pro::constraint_level::nontrivial>
+			::add_convention<MemDecompress, ByteSlice(const ByteSlice& src, size_t originalSize)>
+			::add_convention<MemDecompressInplace, size_t(const ByteSlice& src, std::span<std::byte> dest)>
+			::build {
+		};
 	}
 
-	struct LZ4Compressor {
-		static ByteSlice encode(ByteSlice data);
-		static ByteSlice decode(ByteSlice data);
+	class LZ4Compresser {
+	public:
+		ByteSlice compress(const ByteSlice& src);
+		size_t compressInplace(const ByteSlice& src, std::span<std::byte> dest);
 	};
+	class LZ4Decompresser {
+	public:
+		ByteSlice decompress(const ByteSlice& src, size_t originalSize);
+		size_t decompressInplace(const ByteSlice& src, std::span<std::byte> dest);
+	};
+
 }

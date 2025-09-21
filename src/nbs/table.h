@@ -7,6 +7,21 @@
 
 namespace nomp {
 
+	constexpr size_t AddrSize = 20; // bytes
+	constexpr size_t PrefixSize = 8; // bytes
+	constexpr size_t SuffixSize = AddrSize - PrefixSize; // bytes
+	constexpr size_t Uint64Size = 8; // bytes
+	constexpr size_t Uint32Size = 4; // bytes
+	constexpr size_t OrdinalSize = 4; // bytes
+	constexpr size_t LengthSize = Uint32Size; // bytes
+	constexpr uint64_t MagicNumber = 0xFFB5D8C22463EE50;
+	constexpr size_t MagicNumberSize = 8; // bytes
+	constexpr size_t FooterSize = Uint32Size + Uint64Size + MagicNumberSize;
+	constexpr size_t PrefixTupleSize = PrefixSize + OrdinalSize;
+	constexpr size_t CheckSumSize = Uint32Size;
+	constexpr size_t MaxChunkSize = 0xffffffff;
+
+
 	struct hasRecord {
 		Hash addr;
 		uint64_t prefix;
