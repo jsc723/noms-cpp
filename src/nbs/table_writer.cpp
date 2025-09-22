@@ -8,28 +8,19 @@
 
 namespace nomp
 {
-	static void checkCompress() {
-		std::string originalData = "This is a sample string that we will compress using LZ4. It's designed for speed!";
-		std::vector<char> compressedData(LZ4_COMPRESSBOUND(originalData.length()));
-
-		// --- Basic Compression ---
-		int compressedSize = LZ4_compress_default(
-			originalData.c_str(),
-			compressedData.data(),
-			originalData.length(),
-			compressedData.size()
-		);
-
-		// --- Basic Decompression ---
-		std::vector<char> decompressedData(originalData.length()); // Allocate space for decompressed data
-		int decompressedSize = LZ4_decompress_safe(
-			compressedData.data(),
-			decompressedData.data(),
-			compressedSize,
-			decompressedData.size()
-		);
-		std::string decompressedString(decompressedData.data(), decompressedSize);
-	}
+	/*
+	* Table: Chunks, Index, Footer
+	* 
+	* Chunks: Chunk 0, Chunk 1, ..., Chunk N-1
+	* 
+	* Chunk: [compressed data][crc32]
+	* 
+	* Index: PrefixTuples, Lengths, Offsets,  Suffixes
+	* PrefixTuples: [prefix0][order0][prefix1][order1]...[prefixN-1][orderN-1]
+	* Lengths: [len0][len1]...[lenN-1]
+	* Offsets: [offset0][offset1]...[offsetN-1]
+	* Suffixes: [suffix0][suffix1]...[suffixN-1]
+	*/
 
 	uint64_t maxTableSize(uint64_t numChunks, uint64_t totalData)
 	{
@@ -38,7 +29,7 @@ namespace nomp
 			throw std::runtime_error("Average chunk size exceeds maximum chunk size");
 		}
 		auto maxLZ4Size = LZ4_compressBound((int)avgChunkSize);
-		return numChunks * (PrefixTupleSize + LengthSize + SuffixSize + CheckSumSize + maxLZ4Size) + FooterSize;
+		return numChunks * (PrefixTupleSize + LengthSize + OffsetSize + SuffixSize + CheckSumSize + maxLZ4Size) + FooterSize;
 	}
 
 	
@@ -70,7 +61,8 @@ namespace nomp
 			return a->prefix < b->prefix;
 			});
 		auto lenOffset = pos + (PrefixSize + OrdinalSize) * prefixes.size();
-		auto suffixOffset = lenOffset + LengthSize * prefixes.size();
+		auto offsetOffset = lenOffset + LengthSize * prefixes.size();
+		auto suffixOffset = offsetOffset + OffsetSize * prefixes.size();
 		for (const auto& rec : prefixes) {
 			// prefix
 			BigEndian::writeUint64(buff.subSpan(pos), rec->prefix);
@@ -84,6 +76,13 @@ namespace nomp
 			auto suffixPos = suffixOffset + rec->order * SuffixSize;
 			std::copy(rec->suffix.begin(), rec->suffix.end(), buff.subSpan(suffixPos).begin());
 		}
+		// offsets
+		uint32_t currentOffset = 0;
+		for (size_t i = 0; i < prefixes.size(); ++i) {
+			BigEndian::writeUint32(buff.subSpan(offsetOffset + i * OffsetSize), currentOffset);
+			currentOffset += BigEndian::uint32(buff.subSpan(lenOffset + i * LengthSize));
+		}
+
 		auto suffixLen = SuffixSize * prefixes.size();
 		blockHasher.update(buff.subSpan(suffixOffset, suffixLen));
 		pos = suffixOffset + suffixLen;

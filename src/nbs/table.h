@@ -14,6 +14,7 @@ namespace nomp {
 	constexpr size_t Uint32Size = 4; // bytes
 	constexpr size_t OrdinalSize = 4; // bytes
 	constexpr size_t LengthSize = Uint32Size; // bytes
+	constexpr size_t OffsetSize = Uint32Size; // bytes
 	constexpr uint64_t MagicNumber = 0xFFB5D8C22463EE50;
 	constexpr size_t MagicNumberSize = 8; // bytes
 	constexpr size_t FooterSize = Uint32Size + Uint64Size + MagicNumberSize;

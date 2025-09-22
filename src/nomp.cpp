@@ -1,4 +1,4 @@
-﻿#include "nbs/MemTable.h"
+﻿#include "nbs/mem_table.h"
 #include "nbs/table.h"
 
 #include <iostream>
